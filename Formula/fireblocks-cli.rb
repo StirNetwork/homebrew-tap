@@ -1,4 +1,4 @@
-class Fireblockscli < Formula
+class FireblocksCli < Formula
   include Language::Python::Virtualenv
 
   desc "An unofficial CLI for managing Fireblocks services."
