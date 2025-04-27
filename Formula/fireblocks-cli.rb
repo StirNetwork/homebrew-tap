@@ -41,6 +41,10 @@ class FireblocksCli < Formula
     url "https://files.pythonhosted.org/packages/8a/d8/6edf422ca9341b0ec3c295e7ffde53c4b4368d69e218bfb1329f00884e84/fireblocks_sdk-2.16.1.tar.gz"
     sha256 "d4f336483f2125d8f3c1e5c1601186b2c9462f160997f5af1b7d1c061515992c"
   end
+  resource "requests" do
+    url "https://files.pythonhosted.org/packages/63/70/2bf7780ad2d390a8d301ad0b550f1581eadbd9a20f896afe06353c2a2913/requests-2.32.3.tar.gz"
+    sha256 "55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760"
+  end
 
   def install
     virtualenv_install_with_resources
