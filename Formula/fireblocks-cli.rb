@@ -53,6 +53,10 @@ class FireblocksCli < Formula
     url "https://files.pythonhosted.org/packages/8a/d8/6edf422ca9341b0ec3c295e7ffde53c4b4368d69e218bfb1329f00884e84/fireblocks_sdk-2.16.1.tar.gz"
     sha256 "d4f336483f2125d8f3c1e5c1601186b2c9462f160997f5af1b7d1c061515992c"
   end
+  resource "idna" do
+    url "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz"
+    sha256 "12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9"
+  end
 
   def install
     virtualenv_install_with_resources
