@@ -8,7 +8,7 @@ class FireblocksCli < Formula
   depends_on "python@3.11"
 
   def install
-    bin.install "fireblocks-cli"
+    bin.install "fireblocks_cli-0.1.8/fireblocks-cli"
   end
 
   test do
