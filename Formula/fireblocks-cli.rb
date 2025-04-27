@@ -1,4 +1,6 @@
 class FireblocksCli < Formula
+  include Language::Python::Virtualenv
+
   desc "An unofficial CLI for managing Fireblocks services"
   homepage "https://github.com/StirNetwork/fireblocks-cli"
   url "https://files.pythonhosted.org/packages/86/e4/5ad65c4ac7689610de02c4112174d927de68360487938b37da063ccedfdc/fireblocks_cli-0.1.9.tar.gz"
