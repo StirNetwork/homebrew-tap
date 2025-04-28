@@ -6,8 +6,8 @@
 import tomllib
 import requests
 import hashlib
-import os
 import re
+import os
 
 FORMULA_TEMPLATE = """class {formula_class_name} < Formula
   include Language::Python::Virtualenv
@@ -31,8 +31,7 @@ FORMULA_TEMPLATE = """class {formula_class_name} < Formula
 end
 """
 
-# 手動で追加したいパッケージ一覧
-extra_packages = [
+EXTRA_PACKAGES = [
     "requests",
     "urllib3",
     "fireblocks_sdk",
@@ -42,12 +41,16 @@ extra_packages = [
     "chardet",
 ]
 
+def load_pyproject_from_url(url):
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    return tomllib.loads(response.content.decode("utf-8"))
+
 
 def get_pypi_metadata(package_name):
     response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
     response.raise_for_status()
     return response.json()
-
 
 def get_sdist_info(pypi_data, package_name="(unknown)"):
     for file in pypi_data["urls"]:
@@ -56,30 +59,20 @@ def get_sdist_info(pypi_data, package_name="(unknown)"):
     print(f"Warning: No sdist found for {package_name}, skipping.")
     return None, None
 
-
-def get_sha256_from_url(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return hashlib.sha256(response.content).hexdigest()
-
-
 def generate_resource_block(package_name):
     data = get_pypi_metadata(package_name)
     sdist_info = get_sdist_info(data, package_name)
     if sdist_info == (None, None):
-        return ""  # resourceを生成しない
+        return ""
     sdist_url, sdist_sha256 = sdist_info
-    return f"""  resource "{package_name}" do\n    url "{sdist_url}"\n    sha256 "{sdist_sha256}"\n  end\n"""
-
+    return f"""  resource \"{package_name}\" do\n    url \"{sdist_url}\"\n    sha256 \"{sdist_sha256}\"\n  end\n"""
 
 def sanitize_formula_class_name(name):
     parts = re.split(r"[-_]", name)
     return "".join(part.capitalize() for part in parts)
 
-
 def normalize_package_name(dep_string):
     return re.split(r"[<>=\[]", dep_string)[0]
-
 
 def extract_extras(dep_string):
     match = re.search(r"\[([^\]]+)\]", dep_string)
@@ -88,12 +81,10 @@ def extract_extras(dep_string):
         return [e.strip() for e in extras.split(",")]
     return []
 
-
 def extract_dependencies_with_extras(project_name, extras=[]):
     data = get_pypi_metadata(project_name)
     requires_dist = data["info"].get("requires_dist", [])
     result = []
-
     for dep in requires_dist:
         if "; extra ==" in dep:
             extra_match = re.search(r"extra == [\'\"]([^\'\"]+)[\'\"]", dep)
@@ -101,33 +92,45 @@ def extract_dependencies_with_extras(project_name, extras=[]):
                 result.append(dep.split(";")[0].strip())
         else:
             result.append(dep.split(";")[0].strip())
-
     return result
 
-
 def main():
-    with open("pyproject.toml", "rb") as f:
-        pyproject = tomllib.load(f)
+    pyproject_url = "https://raw.githubusercontent.com/StirNetwork/fireblocks-cli/main/pyproject.toml"
+    pyproject = load_pyproject_from_url(pyproject_url)
 
-    project = pyproject["project"]
-    project_name = project["name"]
-    version = project["version"]
-    homepage = project.get("urls", {}).get(
-        "Homepage", "https://github.com/stirnetwork/fireblocks-cli"
-    )
-    license_name = project.get("license", {}).get("text", "MPL-2.0")
-    desc = project.get("description", f"{project_name} CLI tool")
+    if "project" in pyproject:
+        project = pyproject["project"]
+        project_name = project["name"]
+        version = project["version"]
+        homepage = project.get("urls", {}).get("Homepage", "https://github.com/stirnetwork/fireblocks-cli")
+        license_name = project.get("license", {}).get("text", "MPL-2.0")
+        desc = project.get("description", f"{project_name} CLI tool")
+        dependencies_raw = project.get("dependencies", [])
+    elif "tool" in pyproject and "poetry" in pyproject["tool"]:
+        project = pyproject["tool"]["poetry"]
+        project_name = project["name"]
+        version = project["version"]
+        homepage = project.get("homepage", "https://github.com/stirnetwork/fireblocks-cli")
+        license_name = project.get("license", "MPL-2.0")
+        desc = project.get("description", f"{project_name} CLI tool")
+        dependencies_raw = [
+            f"{name}{spec}" if isinstance(spec, str) else name
+            for name, spec in project.get("dependencies", {}).items()
+            if name.lower() != "python"
+        ]
+    else:
+        raise ValueError("Unsupported pyproject.toml format")
 
     pypi_data = get_pypi_metadata(project_name)
     sdist_url, sdist_sha256 = get_sdist_info(pypi_data)
 
     dependencies = []
-    for dep in project.get("dependencies", []):
+    for dep in dependencies_raw:
         dep_name = normalize_package_name(dep)
         extras = extract_extras(dep)
         dependencies.append((dep_name, extras))
 
-    for extra in extra_packages:
+    for extra in EXTRA_PACKAGES:
         dependencies.append((extra, []))
 
     resources = ""
@@ -159,12 +162,14 @@ def main():
         command_name=project_name,
     )
 
-    formula_filename = f"{project_name}.rb"
-    with open(formula_filename, "w") as f:
+    # Formula ディレクトリに fireblocks-cli.rb として出力
+    os.makedirs("Formula", exist_ok=True)
+    formula_path = os.path.join("Formula", "fireblocks-cli.rb")
+    with open(formula_path, "w") as f:
         f.write(formula_content)
 
-    print(f"Formula generated: {formula_filename}")
-
+    print(f"Formula generated: {formula_path}")
 
 if __name__ == "__main__":
     main()
+
