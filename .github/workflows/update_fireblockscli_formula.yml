@@ -19,7 +19,7 @@ jobs:
       - name: Run Formula Update
         run: |
           pip install --upgrade pip
-          pip install .
+          pip install -r requirements.txt
           python scripts/update_fireblocks-cli_formula.py
 
       - name: Commit and Push Changes
