@@ -3,8 +3,8 @@ class FireblocksCli < Formula
 
   desc "An unofficial CLI for managing Fireblocks services."
   homepage "https://github.com/stirnetwork/fireblocks-cli"
-  url "https://files.pythonhosted.org/packages/86/e4/5ad65c4ac7689610de02c4112174d927de68360487938b37da063ccedfdc/fireblocks_cli-0.1.9.tar.gz"
-  sha256 "829782c4785863eff759cc760adebe69ef5c0e1f05c62496f3bf790b5db84cf5"
+  url "https://files.pythonhosted.org/packages/65/92/0937722c41b48276205aaa27963a4c16f517aa62bedc39e91c1d0fd1c396/fireblocks_cli-0.1.10.tar.gz"
+  sha256 "d0096a6a3c55fc5aeead279faf83bb3dbbc66b2d91126bf82750da9dec89f4d5"
   license "MPL-2.0"
 
   depends_on "python@3.11"
