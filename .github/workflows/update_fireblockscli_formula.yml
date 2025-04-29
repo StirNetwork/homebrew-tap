@@ -30,9 +30,13 @@ jobs:
           git commit -m "fireblocks-cli: bump to ${{ github.event.client_payload.version }}" || echo "No changes to commit"
           git push
 
+      - name: Set version from ref
+        id: set_version
+        run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+      
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          title: "fireblocks-cli: bump to ${{ github.event.client_payload.version }}"
-          commit-message: "fireblocks-cli: bump to ${{ github.event.client_payload.version }}"
-          branch: "bump/fireblocks-cli-${{ github.event.client_payload.version }}"
+          title: "fireblocks-cli: bump to ${{ env.VERSION }}"
+          commit-message: "fireblocks-cli: bump to ${{ env.VERSION }}"
+          branch: "bump/fireblocks-cli-${{ env.VERSION }}"
